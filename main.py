@@ -2,6 +2,7 @@
 # -*- encoding: utf-8 -*-
 
 # ConnpassAPIのリファレンス: https://connpass.com/about/api/
+# ConnpassのWebサイトに対するスクレイピングに関する注意事項: https://connpass.com/robots.txt
 
 from pathlib import Path
 from glob import glob
