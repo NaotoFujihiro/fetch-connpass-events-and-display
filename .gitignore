@@ -234,3 +234,9 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/java,python,intellij
+
+# Don't commit credentials
+credentials/*
+
+# Don't commit cache files
+cache/*
