@@ -22,7 +22,6 @@ period_list_for_search = Keywords.receive_period_from_console()
 # for Debug
 print(keywords_list_for_search)
 print(period_list_for_search)
-
 print(", ".join(keywords_list_for_search) + ' で検索します。')
 print('期間は ' + period_list_for_search[0] + '-' + period_list_for_search[-1] + ' です。')
 
@@ -31,6 +30,12 @@ def main(keyword):
     # Connpassでのキーワード検索を行う
     # 1回のリクエストの検索結果の最大出力データ数は100件である。
     # 「今月のみ検索したい」といった要望を見越して、月ごとに検索をかけるようにする。
+
+    # ToDo: 検索結果の保存先をGoogle Driveから変更する
+    # Needed when operating Google Drive and Spreadsheet.
+    google_service = {'drive': auth.build_service('drive'), 'sheets': auth.build_service('sheets')}
+
+    print('Authorization complete!')
 
 
 for keyword in keywords_list_for_search:
