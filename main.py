@@ -93,6 +93,50 @@ def main(keyword):
             search_start += 100
             fetch_count -= 1
 
+    # headersとevents_list_per_monthとheadersを、スプレッドシートに保存する。
+    # APIを呼び出す前に、listに格納する必要がある。
+    # headersは先頭行のタイトルを表し、events_list_per_monthがスプレッドシートの各行に保存されるイベント詳細である。
+    headers = [
+        'ym', 'ID', 'URL', 'タイトル', '主催者', '充足率', '参加者数', '定員', '会場', '開始時刻', '終了時刻', '更新日時'
+    ]
+
+    events_list_per_month = []
+    for ym in period_list_for_search:
+        cache_file_list_path = 'cache/' + keyword + '/' + str(ym) + '/' + '[0-9]*.json'
+        cache_file_per_month_list = list(sorted(glob(cache_file_list_path, recursive=True)))
+
+        for cache_file_per_month in cache_file_per_month_list:
+            # get_value_from_cache_filesは、['events'][i]['event_id'] の形式となっている
+            events_per_month_list = cache.get_value_from_cache(Path(cache_file_per_month), 'events')
+
+            for event in events_per_month_list:
+                event_detail_dict = {
+                    'ym': event['started_at'][:7],
+                    'ID': event['event_id'],
+                    'URL': event['event_url'],
+                    'タイトル': event['title'],
+                    '主催者': event['owner_display_name'],
+                    # 定員の充足率を計算（イベントの人気度を定量的に評価）
+                    '充足率': generator.calc_rate(event['accepted'], event['limit']),
+                    '参加者数': event['accepted'],
+                    '定員': event['limit'],
+                    '会場': event['place'],
+                    '開始時刻': event['started_at'],
+                    '終了時刻': event['ended_at'],
+                    '更新日時': event['updated_at']
+                }
+                events_list_per_month.append(event_detail_dict)
+                events_list_per_month.sort(key=lambda x: x['開始時刻'])
+
+    num_events_per_month_list = []
+    for ym in period_list_for_search:
+        num_events_per_month_list.append(cache.get_value_from_cache(cache_events_num_file, str(ym)))
+
+    # スプレッドシートに保存できるように、リストに格納する。
+    headers_list_to_post = [headers]
+    events_list_to_post = generator.convert_dict_to_list(events_list_per_month, headers)
+    num_events_per_month_to_post = [num_events_per_month_list]
+
     # ToDo: 検索結果の保存先をGoogle Driveから変更する
     # Needed when operating Google Drive and Spreadsheet.
     google_service = {'drive': auth.build_service('drive'), 'sheets': auth.build_service('sheets')}
