@@ -143,6 +143,44 @@ def main(keyword):
 
     print('Authorization complete!')
 
+    # ToDo: 既にスプレッドシートがある場合は、末尾にイベント情報を追加できるようにする。
+    # Spreadsheetを新規作成して、spreadsheet_idを取得する。
+    spreadsheet_id = sheet.create_sheets(keyword, google_service['sheets'])
+
+    # Folderを新規作成して、folder_idを取得する。
+    folder_id = folder.create_folders(keyword, google_service['drive'])
+
+    # Move the file to the new folder
+    folder.move_files(google_service['drive'], spreadsheet_id, folder_id)
+
+    # スプレッドシートにタイトルを投入
+    sheet.save_batch_data_to_sheets(
+        headers_list_to_post, google_service['sheets'], 'A1', spreadsheet_id,
+    )
+
+    print('スプレッドシートにイベント情報を投入しています。')
+    # スプレッドシートにイベント情報を投入
+    sheet.save_batch_data_to_sheets(
+        events_list_to_post, google_service['sheets'], 'A2', spreadsheet_id,
+    )
+
+    # 月ごとのイベント数を棒グラフで表す
+    # num_yms = len(year) * len(month)
+    added_sheet_id = sheet.add_sheets(google_service['sheets'], 'graph_axis', spreadsheet_id)
+
+    sheet.save_batch_data_to_sheets(
+        [period_list_for_search], google_service['sheets'], 'graph_axis!A1', spreadsheet_id
+    )
+
+    sheet.save_batch_data_to_sheets(
+        num_events_per_month_to_post, google_service['sheets'], 'graph_axis!A2', spreadsheet_id
+    )
+
+    print('イベント数の推移を表したグラフを作成しています。')
+    sheet.draw_charts(google_service['sheets'], spreadsheet_id, added_sheet_id)
+
+    print('All the procedure have done!!')
+
 
 for keyword in keywords_list_for_search:
     main(keyword)
