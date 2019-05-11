@@ -25,6 +25,31 @@ print(period_list_for_search)
 print(", ".join(keywords_list_for_search) + ' で検索します。')
 print('期間は ' + period_list_for_search[0] + '-' + period_list_for_search[-1] + ' です。')
 
+    # ToDo:検索期間に今月が含まれているならば、cacheの有無に関わらずhttpリクエストを送り、cacheを更新する。
+    # 検索結果をjson形式で保存して、httpリクエストの回数を減らす。
+    for ym in period_list_for_search:
+        search_start = 1        # 検索の開始位置
+        search_count = 100      # 取得件数
+
+        # 検索結果をjson形式で保存して、httpリクエストの回数を減らす。
+        while True:
+            cache_dir = Path('cache/')
+
+            # 検索結果をjson形式で保存しておくcache
+            cache_events_name = keyword + '/' + str(ym) + '/' + str(search_start) + '.json'
+            cache_events_file = cache_dir / Path(cache_events_name)
+
+            # 検索結果のうち、検索結果の総件数を保存するためのcacheファイル
+            cache_events_num_name = keyword + '/' + 'available' + '.json'
+            cache_events_num_file = cache_dir / Path(cache_events_num_name)
+
+            is_cache_events_exists = cache_events_file.exists()
+            is_cache_events_num_exists = cache_events_file.exists()
+
+            # Cacheファイルがなければ、Connpass APIにhttpリクエストを飛ばして、 イベント情報を取得する。
+            # Cacheファイルがあれば、何もしない
+            if not is_cache_events_exists:
+                cache.create_cache(cache_events_file)
 
 def main(keyword):
     # Connpassでのキーワード検索を行う
