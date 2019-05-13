@@ -22,6 +22,7 @@ period_list_for_search = Keywords.receive_period_from_console()
 # for Debug
 print(keywords_list_for_search)
 print(period_list_for_search)
+
 print(", ".join(keywords_list_for_search) + ' で検索します。')
 print('期間は ' + period_list_for_search[0] + '-' + period_list_for_search[-1] + ' です。')
 
@@ -55,13 +56,13 @@ def main(keyword):
             # Cacheファイルがなければ、Connpass APIにhttpリクエストを飛ばして、 イベント情報を取得する。
             # Cacheファイルがあれば、何もしない
             if not is_cache_events_exists:
-                cache.create_cache(cache_events_file)
-
                 print('Connpassで検索を開始します。')
                 fetched_events_json = fetch.fetch_search_results_to_cache(keyword, ym, search_start, search_count)
 
                 # 検索結果のイベントリスト
                 events_dict = {'events': fetched_events_json['events']}
+
+                cache.create_cache(cache_events_file)
 
                 # 取得した情報をcacheに保存する
                 cache.save_to_cache(cache_events_file, events_dict)
