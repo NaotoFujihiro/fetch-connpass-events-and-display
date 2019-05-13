@@ -1,13 +1,13 @@
 #  -*- encoding: utf-8 -*-
 
 import requests
-import json
 from time import sleep
 import sys
 
 
 def fetch_search_results_to_cache(keyword, ym, search_start, search_count, timeout=100):
     fetch_url = 'https://connpass.com/api/v1/event/'
+
     # スクレイピングの間隔を設定: https://connpass.com/robots.txt
     crawl_delay_sec = 5
 
@@ -28,18 +28,24 @@ def fetch_search_results_to_cache(keyword, ym, search_start, search_count, timeo
 
     fetch_trial_count = 0
     while fetch_trial_count < 10:
-        try:
-            print('-----\n' + str(ym))
-            print('-----\n' + str(search_start))
-            print('-----\n' + str(fetch_trial_count+1) + '回目')
-            fetched_search_results = requests.get(fetch_url, timeout=timeout, params=payload)
+        print('-----\n' + str(ym))
+        print('-----\n' + str(search_start))
+        print('-----\n' + str(fetch_trial_count+1) + '回目')
+        response = requests.get(fetch_url, timeout=timeout, params=payload)
 
-            fetched_search_results_json = fetched_search_results.json()
-            return fetched_search_results_json
-        except json.decoder.JSONDecodeError as ex:
-            print(ex)
+        # HTTPステータスコードが200番代の場合、raise_for_status()メソッドは'NoneType'型となる
+        is_request_success = response.raise_for_status() is None
+        is_content_json = response.headers['Content-Type'] == 'text/json; charset=utf-8'
 
-        sleep(crawl_delay_sec)
-        fetch_trial_count += 1
+        if is_request_success and is_content_json:
+            print('HTTP status code is: ' + str(response.status_code))
+            print(response.headers['Content-Type'] + '形式でデータを取得しました。')
+            return response.json()
+        else:
+            print(response.raise_for_status())
+            print('JSON形式でデータを取得できなかったので、再度リクエストしています。')
+            sleep(crawl_delay_sec)
+            fetch_trial_count += 1
+            continue
 
     return None
